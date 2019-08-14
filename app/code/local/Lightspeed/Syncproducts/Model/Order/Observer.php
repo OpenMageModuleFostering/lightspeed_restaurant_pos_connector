@@ -24,8 +24,14 @@ class Lightspeed_Syncproducts_Model_Order_Observer {
             $order['companyId'] = $establishmentId;
         }
 
-        $customer= mage::getModel('customer/customer')->load($magentoOrder->getCustomerId());
+        $customer = mage::getModel('customer/customer')->load($magentoOrder->getCustomerId());
         $order["customerId"] = $this->getCustomerId($customer, $establishmentId, $magentoOrder);
+        if ($order["customerId"] == 0 ) {
+            $posiosId = Mage::helper('lightspeed_syncproducts/api')->createCustomer($customer, null);
+            $customer->setData('posiosId', (int) $posiosId);
+            $customer->getResource()->saveAttribute($customer, 'posiosId');
+            $order["customerId"] = $posiosId;
+        }
 
         $order["deliveryDate"] = $this->getDeliveryTimestamp($magentoOrder);
         $order["type"] = $this->getShippingType($magentoOrder->getShippingMethod(true)->getCarrierCode());
@@ -63,6 +69,7 @@ class Lightspeed_Syncproducts_Model_Order_Observer {
 
         $this->log('Going to create an order' . (($establishmentId !== null) ? ' for establishment: ' . $establishmentId : ''));
         $posiosId = Mage::helper('lightspeed_syncproducts/api')->createOrder($order, $establishmentId);
+
         $magentoOrder->setData('posiosId', $posiosId);
         $magentoOrder->save();
 
@@ -194,16 +201,26 @@ class Lightspeed_Syncproducts_Model_Order_Observer {
     }
 
     private function getDeliveryTimestamp($order) {
-        try{
-            $mod = Mage::getModel("invoiceogone/deliverytime");
-            if($mod){
-                $deliveryTimeStamp = $mod->loadDeliverytime($order->getEntityId());
-                $this->log('Using bluevision deliveryDate: '. date('c', ((int)$deliveryTimeStamp)/1000));
-                return Mage::app()->getLocale()->date(((int)$deliveryTimeStamp)/1000, null, null, false)->toString('c');
-            }else{
-                return Mage::app()->getLocale()->date(strtotime($order->getCreatedAt()), null, null, false)->toString('c');
+
+        try {
+            $deliveryTimeHelper = Mage::helper('deliverytime');
+            $deliveryTimeModel = Mage::getModel("deliverytime/deliverytime");
+
+            if ($deliveryTimeModel && $deliveryTimeHelper->isEnabled()) {
+                $deliveryDateTime = Mage::getSingleton('checkout/session')->getData('delivery_time_data');
+                date_default_timezone_set(Mage::getStoreConfig('general/locale/timezone'));
+                return date(DATE_ATOM, strtotime($deliveryDateTime["delivery_date"] . " " . $deliveryDateTime["time_start"]));
+            } else {
+                $mod = Mage::getModel("invoiceogone/deliverytime");
+                if ($mod) {
+                    $deliveryTimeStamp = $mod->loadDeliverytime($order->getEntityId());
+                    $this->log('Using bluevision deliveryDate: ' . date('c', ((int)$deliveryTimeStamp) / 1000));
+                    return Mage::app()->getLocale()->date(((int)$deliveryTimeStamp) / 1000, null, null, false)->toString('c');
+                } else {
+                    return Mage::app()->getLocale()->date(strtotime($order->getCreatedAt()), null, null, false)->toString('c');
+                }
             }
-        }catch (Exception $ex){
+        } catch (Exception $ex) {
             return Mage::app()->getLocale()->date(strtotime($order->getCreatedAt()), null, null, false)->toString('c');
         }
     }

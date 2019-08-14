@@ -1,27 +1,24 @@
 <?php
-class Lightspeed_Syncproducts_SyncproductsController extends Mage_Adminhtml_Controller_Action
-{
+class Lightspeed_Syncproducts_SyncproductsController extends Mage_Adminhtml_Controller_Action {
 
-    private function log($message){
+    private function log($message) {
         Mage::log($message, null, "lightspeed.log", true);
     }
 
-
-    public function indexAction()
-    {
-        $this->loadLayout();
+    public function indexAction() {
+        $this->loadLayout()->_setActiveMenu('lightspeed');
         $this->renderLayout();
     }
 
     public function checkAction() {
-        $this->loadLayout();
+        $this->loadLayout()->_setActiveMenu('lightspeed');
         $this->renderLayout();
     }
 
     public function categoriesAction() {
         $priceField = $this->getRequest()->getPost("priceField", "price");
         Mage::helper('lightspeed_syncproducts/syncProcess')->setPriceField($priceField);
-        $this->loadLayout();
+        $this->loadLayout()->_setActiveMenu('lightspeed');
         $this->renderLayout();
     }
 
@@ -33,7 +30,7 @@ class Lightspeed_Syncproducts_SyncproductsController extends Mage_Adminhtml_Cont
             }
         }
         Mage::helper('lightspeed_syncproducts/syncProcess')->setProductGroups($productGroups);
-        $this->loadLayout();
+        $this->loadLayout()->_setActiveMenu('lightspeed');
         $this->renderLayout();
     }
 
@@ -51,7 +48,7 @@ class Lightspeed_Syncproducts_SyncproductsController extends Mage_Adminhtml_Cont
         Mage::helper('lightspeed_syncproducts/syncProcess')->setProductIds($products);
         Mage::helper('lightspeed_syncproducts/import')->importTaxClasses();
         Mage::helper('lightspeed_syncproducts/import')->importCategories();
-        $this->loadLayout();
+        $this->loadLayout()->_setActiveMenu('lightspeed');
         $this->renderLayout();
     }
 }

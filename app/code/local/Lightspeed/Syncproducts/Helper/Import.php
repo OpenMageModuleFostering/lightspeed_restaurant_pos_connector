@@ -624,8 +624,10 @@ class Lightspeed_Syncproducts_Helper_Import extends Mage_Core_Helper_Abstract {
             $shippingAddress = $billingAddress;
         }
 
-        $customer["firstName"] = $magentoCustomer->getData("firstname");
-        $customer["lastName"] = $magentoCustomer->getData("lastname");
+        $customer["firstName"] = $shippingAddress->getData("firstname");
+        $customer["lastName"] = $shippingAddress->getData("lastname");
+        $customer["telephone"] = $shippingAddress->getData("telephone");
+
         $customer["email"] = $magentoCustomer->getData("email");
 
         $street = $this->parseMagentoStreet($billingAddress->getStreetFull());

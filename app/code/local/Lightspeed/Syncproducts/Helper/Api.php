@@ -117,7 +117,16 @@ class Lightspeed_Syncproducts_Helper_Api  extends Mage_Core_Helper_Abstract{
         } else {
             $token = null;
         }
-        $response = $this->post(self::ONLINE_ORDERING, "customer", $customer, false, true, $token);
+        $this->log('Check if user email already exists');
+        $response = $this->get(self::CORE, "customer", array("email" => $customer["email"]));
+        if (isset($response["data"]->results[0]->id)) {
+            $posiosId = $response["data"]->results[0]->id;
+            $this->log('User already exists with posiosId: ' . $posiosId . '. Starting update');
+            $this->saveCustomer($customer, $posiosId, $establishmentId);
+            return $posiosId;
+        } else {
+            $response = $this->post(self::ONLINE_ORDERING, "customer", $customer, false, true, $token);
+        }
         if($response["status"] == 201){
             return intval($response["data"]);
         } else {

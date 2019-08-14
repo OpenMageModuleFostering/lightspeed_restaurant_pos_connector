@@ -1,9 +1,7 @@
 <?php
-class Lightspeed_Syncproducts_MonitorController extends Mage_Adminhtml_Controller_Action
-{
+class Lightspeed_Syncproducts_MonitorController extends Mage_Adminhtml_Controller_Action {
 
-    public function indexAction()
-    {
+    public function indexAction() {
         $offset = $this->getRequest()->getParam('offset', 0);
         if(!isset($offset)) {
             $offset = 0;
@@ -14,12 +12,12 @@ class Lightspeed_Syncproducts_MonitorController extends Mage_Adminhtml_Controlle
         }
         Mage::register('offset', $offset);
         Mage::register('status', $status);
-        $this->loadLayout();
+        $this->loadLayout()->_setActiveMenu('lightspeed');
         $this->renderLayout();
     }
 
     public function checkAction() {
-        $this->loadLayout();
+        $this->loadLayout()->_setActiveMenu('lightspeed');
         $this->renderLayout();
     }
 
