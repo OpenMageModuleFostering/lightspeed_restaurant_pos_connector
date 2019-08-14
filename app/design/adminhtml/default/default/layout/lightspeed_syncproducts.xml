@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<layout>
+    <adminhtml_syncproducts_index>
+        <reference name="content">
+            <block type="lightspeed/syncproducts" name="lightspeed_sync" template="lightspeed/page.phtml"></block>
+        </reference>
+    </adminhtml_syncproducts_index>
+    <adminhtml_syncproducts_categories>
+        <reference name="content">
+            <block type="lightspeed/syncproducts" name="lightspeed_sync" template="lightspeed/categories.phtml"></block>
+        </reference>
+    </adminhtml_syncproducts_categories>
+    <adminhtml_syncproducts_products>
+        <reference name="content">
+            <block type="lightspeed/syncproducts" name="lightspeed_sync" template="lightspeed/products.phtml"></block>
+        </reference>
+    </adminhtml_syncproducts_products>
+    <adminhtml_syncproducts_sync>
+        <reference name="content">
+            <block type="lightspeed/syncproducts" name="lightspeed_sync" template="lightspeed/sync.phtml"></block>
+        </reference>
+    </adminhtml_syncproducts_sync>
+    <adminhtml_synccustomers_index>
+        <reference name="content">
+            <block type="lightspeed/synccustomers" name="lightspeed_sync" template="lightspeed/customers/check.phtml"></block>
+        </reference>
+    </adminhtml_synccustomers_index>
+    <adminhtml_synccustomers_sync>
+        <reference name="content">
+            <block type="lightspeed/synccustomers" name="lightspeed_sync" template="lightspeed/customers/sync.phtml"></block>
+        </reference>
+    </adminhtml_synccustomers_sync>
+    <adminhtml_monitor_index>
+        <reference name="content">
+            <block type="lightspeed/monitor" name="lightspeed_sync" template="lightspeed/monitor/monitor.phtml"></block>
+        </reference>
+    </adminhtml_monitor_index>
+</layout>

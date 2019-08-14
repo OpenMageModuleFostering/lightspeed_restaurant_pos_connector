@@ -1,0 +1,154 @@
+<?xml version="1.0"?>
+<config>
+    <tabs>
+        <lightspeed translate="label" module="lightspeed_syncproducts">
+            <label>Lightspeed</label>
+            <sort_order>100</sort_order>
+        </lightspeed>
+    </tabs>
+    <sections>
+        <lightspeed_settings translate="label" module="lightspeed_syncproducts">
+            <label>Lightspeed Settings</label>
+            <tab>lightspeed</tab>
+            <sort_order>1000</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+            <groups>
+                <lightspeed_account translate="label" module="lightspeed_syncproducts">
+                    <label>Account Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>10</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <lightspeed_server translate="label">
+                            <label>Cloudserver</label>
+                            <comment>Give in the cloudserver you are using. format: http(s)://xx#.posios.com/</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </lightspeed_server>
+                        <lightspeed_username translate="label">
+                            <label>Username</label>
+                            <comment>Give in your Lightspeed username.</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </lightspeed_username>
+                        <lightspeed_password translate="label">
+                            <label>Password</label>
+                            <comment>Give in your Lightspeed password.</comment>
+                            <frontend_type>password</frontend_type>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </lightspeed_password>
+                        <lightspeed_company translate="label">
+                            <label>Company id</label>
+                            <comment>Give in your Lightspeed's company id.</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </lightspeed_company>
+                    </fields>
+                </lightspeed_account>
+                <lightspeed_payment translate="label" module="lightspeed_syncproducts">
+                    <label>Payment Mapping</label>
+                    <frontend_type>text</frontend_type>
+                    <frontend_model>lightspeed/paymentfields</frontend_model>
+                    <sort_order>20</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                </lightspeed_payment>
+                <lightspeed_sync translate="label" module="lightspeed_syncproducts">
+                    <label>Sync Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>30</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <lightspeed_delivery_costs translate="label">
+                            <label>Delivery costs product</label>
+                            <comment>Which product must be used for delivery costs</comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>lightspeed_syncproducts/product_source</source_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </lightspeed_delivery_costs>
+                        <lightspeed_customer_tax translate="label">
+                            <label>Which customer tax class do you want to use?</label>
+                            <comment>Which customer tax class must be used for the imported products</comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>lightspeed_syncproducts/tax_source</source_model>
+                            <sort_order>25</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </lightspeed_customer_tax>
+                        <lightspeed_parent_category translate="label">
+                            <label>Parent category to import to</label>
+                            <comment>Which category must be used as a parent category to import lightspeed categories</comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>lightspeed_syncproducts/category_source</source_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </lightspeed_parent_category>
+                        <lightspeed_use_tax_inclusive translate="label">
+                            <label>Use tax inclusive prices</label>
+                            <comment>When importing, should we use tax inclusive prices?</comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </lightspeed_use_tax_inclusive>
+                        <lightspeed_import_modifiers translate="label">
+                            <label>Import modifiers</label>
+                            <comment>When importing, should we also import modifiers?</comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </lightspeed_import_modifiers>
+                    </fields>
+                </lightspeed_sync>
+                <lightspeed_establishments translate="label" module="lightspeed_syncproducts">
+                    <label>Establishment Mapping</label>
+                    <frontend_type>text</frontend_type>
+                    <frontend_model>lightspeed/establishmentfields</frontend_model>
+                    <sort_order>25</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                </lightspeed_establishments>
+                <lightspeed_shipping translate="label" module="lightspeed_syncproducts">
+                    <label>Shipping Mapping</label>
+                    <frontend_type>text</frontend_type>
+                    <frontend_model>lightspeed/shippingfields</frontend_model>
+                    <sort_order>27</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                </lightspeed_shipping>
+            </groups>
+        </lightspeed_settings>
+    </sections>
+</config>

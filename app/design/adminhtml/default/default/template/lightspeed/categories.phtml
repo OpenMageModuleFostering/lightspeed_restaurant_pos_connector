@@ -1,0 +1,46 @@
+<html>
+<head>
+    <style>
+        ul.lightspeed{
+            list-style: none;
+            margin-left: 50px;
+            margin-bottom: 20px;
+        }
+    </style>
+    <script type="text/javascript">
+        function checkAllCategories(checked){
+            var checkboxes = $('categoryForm').select('.categoryCheckbox');
+            checkboxes.each(function(checkbox){
+                checkbox.checked = checked;
+            });
+        }
+    </script>
+</head>
+<body>
+<?php $categories = $this->getProductGroups(); ?>
+    <p>
+        Please select the product groups you want to sync below.<br />
+    </p>
+    <?php if(count($categories) > 0):?>
+        <form method="post" action="<?php echo $this->getLightSpeedUrl('products') ?>" id="categoryForm">
+            <input name="form_key" type="hidden" value="<?php echo Mage::getSingleton('core/session')->getFormKey() ?>" />
+            <ul class="lightspeed">
+                <?php foreach($categories as $category):?>
+                    <?php if($category->visible):?>
+                        <li>
+                            <input class="categoryCheckbox" id="<?php echo $category->id;?>" name="<?php echo $this->parseName($category->name); ?>" value="<?php echo $category->id; ?>" type="checkbox">
+                            <label for="<?php echo $category->id;?>"><?php echo $category->name; ?></label>
+                        </li>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </ul>
+            <button id="selectProducts" title="Select products" type="submit" class="scalable"><span><span><span>Continue</span></span></span></button>
+            <button id="selectAll" type="button" class="scalable" onclick="checkAllCategories(true)"><span><span><span>Select all</span></span></span></button>
+            <button id="deSelectAll" type="button" class="scalable" onclick="checkAllCategories(false)"><span><span><span>Deselect all</span></span></span></button>
+        </form>
+    <?php else: ?>
+        <p>No product groups found. Please add a group first using the Lightspeed Restaurant Manager.</p>
+    <?php endif; ?>
+</body>
+</html>
+

@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<config>
+    <menu>
+        <lightspeed translate="title" module="lightspeed_syncproducts">
+            <title>Lightspeed</title>
+            <sort_order>65</sort_order>
+            <children>
+                <products>
+                    <title>Sync Products</title>
+                    <action>adminhtml/syncproducts/index</action>
+                    <sort_order>50</sort_order>
+                </products>
+                <customers>
+                    <title>Sync Customers</title>
+                    <action>adminhtml/synccustomers/index</action>
+                    <sort_order>60</sort_order>
+                </customers>
+                <monitor>
+                    <title>Monitor orders</title>
+                    <action>adminhtml/monitor/index</action>
+                    <sort_order>70</sort_order>
+                </monitor>
+            </children>
+        </lightspeed>
+    </menu>
+    <acl>
+        <resources>
+            <admin>
+                <children>
+                    <lightspeed translate="title" module="lightspeed_syncproducts">
+                        <title>Lightspeed</title>
+                        <sort_order>65</sort_order>
+                        <children>
+                            <products>
+                                <title>Sync Products</title>
+                            </products>
+                            <customers>
+                                <title>Sync Customers</title>
+                            </customers>
+                            <monitor>
+                                <title>Monitor orders</title>
+                            </monitor>
+                        </children>
+                    </lightspeed>
+                    <system>
+                        <children>
+                            <config>
+                                <children>
+                                    <lightspeed_settings translate="title" module="lightspeed_syncproducts">
+                                        <title>Lightspeed Settings</title>
+                                    </lightspeed_settings>
+                                </children>
+                            </config>
+                        </children>
+                    </system>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+  * Module initial config
+  *
+  * @author Joris De Smedt
+  */
+-->
+<config>
+    <modules>
+        <Lightspeed_Syncproducts>
+            <active>true</active>
+            <codePool>local</codePool>
+        </Lightspeed_Syncproducts>
+    </modules>
+</config>
