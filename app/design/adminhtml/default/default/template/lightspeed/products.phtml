@@ -29,7 +29,7 @@
             <ul class="lightspeed">
                 <?php if(isset($group["products"])):?>
                     <?php foreach($group["products"] as $product):?>
-                        <?php if($product->visible && $product->productType == ""):?>
+                        <?php if($product->visible && $product->name != "LINE" && $product->name != "SPACER" && $product->productType == ""):?>
                             <li>
                                 <input class="productCheckbox" type="checkbox" id="<?php echo $product->id;?>" name="<?php echo $product->id;?>" value="<?php echo $group["id"]; ?>"/>
                                 <label for="<?php echo $product->id;?>"><?php echo $product->name.' ('.$product->sku.')'.' - '.$this->formatPrice($this->getPrice($product, false)).' ('.$this->formatPrice($this->getPrice($product, true)).' VAT Incl.)'; ?></label>

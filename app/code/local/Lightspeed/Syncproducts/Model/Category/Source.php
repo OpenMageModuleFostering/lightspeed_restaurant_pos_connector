@@ -29,7 +29,7 @@ class Lightspeed_Syncproducts_Model_Category_Source {
                         $ret[] = array("value" => $category->getId(), "label" => $category->getName());
                     }
                 }
-                $this->setSyncSession($this->getSyncSession()->setCategories($ret));
+                $this->setSyncSession($this->getSyncSession()->setProductGroups($ret));
                 $this->setSyncSession($this->getSyncSession()->setLastUpdate(time()));
             } else {
                 $ret = array();

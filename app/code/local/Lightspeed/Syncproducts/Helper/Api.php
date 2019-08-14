@@ -27,8 +27,13 @@ class Lightspeed_Syncproducts_Helper_Api  extends Mage_Core_Helper_Abstract{
         Mage::log($message, null, "lightspeedPut.log");
     }
 
+    private function logPatch($message) {
+        Mage::log($message, null, "lightspeedPatch.log");
+    }
+
     public function getClientApiToken(){
         $this->log('Getting api token...');
+
         if($this->cachedClientApiToken == null){
             $username = Mage::getStoreConfig("lightspeed_settings/lightspeed_account/lightspeed_username");
             $password = Mage::getStoreConfig("lightspeed_settings/lightspeed_account/lightspeed_password");
@@ -46,23 +51,14 @@ class Lightspeed_Syncproducts_Helper_Api  extends Mage_Core_Helper_Abstract{
     }
 
     protected function getEstablishmentToken($establishmentId){
-        /*
-         * $response = $this->post(self::SECURITY_API, "token/establishment/".$establishmentId);
-         * if($response["status"] == 200){
-         *     return $response["data"]->token;
-         * } else {
-         * }
-         */
-        $token = $this->getClientApiToken();
-        $params = array(
-            'id' => 0,
-            'method' => 'manager.getTokenForEstablishment',
-            'params' => array($token , $establishmentId, 'webmanager')
-        );
-        $response = $this->post(self::RPC, "", $params, true, false);
+        $username = Mage::getStoreConfig("lightspeed_settings/lightspeed_account/lightspeed_username");
+        $password = Mage::getStoreConfig("lightspeed_settings/lightspeed_account/lightspeed_password");
+        $response = $this->post(self::SECURITY_API, "token",array("username" => $username, "password" => $password, "companyId" => $establishmentId, "deviceId" => "webmanager"), true, false);
         if($response["status"] == 200){
-            return $response["data"]->result;
+            $this->log("Got establishment api token: " . $response["data"]->token);
+            return $response["data"]->token;
         } else {
+            $this->log("Error getting establishment api token: ");
         }
     }
 
@@ -74,9 +70,33 @@ class Lightspeed_Syncproducts_Helper_Api  extends Mage_Core_Helper_Abstract{
         }
     }
 
+    public function getProductGroup($productId){
+        $response = $this->get(self::INVENTORY, "productgroup/".$productId, array("amount" => 50));
+        if($response["status"] == 200){
+            return $response["data"];
+        } else {
+        }
+    }
+
     public function getProducts($productGroupId){
         $response = $this->get(self::INVENTORY, "productgroup/".$productGroupId."/product", array("amount" => 100));
         if($response["status"] == 200){
+            return $response["data"];
+        } else {
+        }
+    }
+
+    public function getProduct($productId){
+        $response = $this->get(self::INVENTORY, "product/".$productId, array("amount" => 100));
+        if($response["status"] == 200){
+            return $response["data"];
+        } else {
+        }
+    }
+
+    public function getSubProducts($productId) {
+        $response = $this->get(self::INVENTORY, "product/".$productId."/subproduct", array("amount" => 100));
+        if ($response["status"] == 200) {
             return $response["data"];
         } else {
         }
@@ -163,7 +183,8 @@ class Lightspeed_Syncproducts_Helper_Api  extends Mage_Core_Helper_Abstract{
     }
 
     public function createOrder($order, $establishmentId = null){
-        $this->log('Creating order for establishment: '.$establishmentId);
+        $this->log('Creating order' . (($establishmentId !== null) ? ' for establishment: ' . $establishmentId : ''));
+
         if(isset($establishmentId)){
             $token = $this->getEstablishmentToken($establishmentId);
             $response = $this->post(self::ONLINE_ORDERING, "customer/".$order["customerId"]."/establishmentorder", $order, false, true, $token);
@@ -174,6 +195,18 @@ class Lightspeed_Syncproducts_Helper_Api  extends Mage_Core_Helper_Abstract{
 
         if($response["status"] == 201){
             return intval($response["data"]);
+        } else {
+        }
+    }
+
+    public function updateOrder($customerId, $posiosId, $orderPayment, $status) {
+        $this->logPatch('Updating order with posiosId: ' . $posiosId . ' to payment status: ' . $status);
+
+        $response = $this->patch(self::ONLINE_ORDERING, "customer/" . $customerId . "/order/" . $posiosId, array("orderPayment" => $orderPayment, "status" => $status), true, null);
+        $this->logPut($response);
+
+        if($response["status"] == 200){
+            return $response["data"];
         } else {
         }
     }
@@ -208,6 +241,7 @@ class Lightspeed_Syncproducts_Helper_Api  extends Mage_Core_Helper_Abstract{
     {
         $this->logPost('Creating '.$resource);
         $this->logPost(print_r($data, true));
+        $this->logPost(json_encode($data));
         $url = Mage::getStoreConfig("lightspeed_settings/lightspeed_account/lightspeed_server");
         if(!substr($url, -strlen('/'))==='/'){
             $url .= '/';
@@ -243,6 +277,7 @@ class Lightspeed_Syncproducts_Helper_Api  extends Mage_Core_Helper_Abstract{
     {
         $this->logPut('Creating '.$resource);
         $this->logPut(print_r($data, true));
+        $this->logPut(json_encode($data));
         $url = Mage::getStoreConfig("lightspeed_settings/lightspeed_account/lightspeed_server");
         if(!substr($url, -strlen('/'))==='/'){
             $url .= '/';
@@ -269,10 +304,41 @@ class Lightspeed_Syncproducts_Helper_Api  extends Mage_Core_Helper_Abstract{
         return array("data" => json_decode($curl_post_response), "status" => $curl_status);
     }
 
+    private  function patch($api, $resource, array $data = array(), $secure = true, $token = null) {
+        $this->logPatch('Creating '.$resource);
+        $this->logPatch(print_r($data, true));
+        $this->logPatch(json_encode($data));
+        $url = Mage::getStoreConfig("lightspeed_settings/lightspeed_account/lightspeed_server");
+        if(!substr($url, -strlen('/'))==='/'){
+            $url .= '/';
+        }
+        $url .= $api.$resource;
+        $curl = curl_init($url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+        $headers = array('Content-Type: application/json', 'Accept: application/json');
+        if($secure){
+            if(isset($token)){
+                $headers[] = 'X-Auth-Token: '.$token;
+            } else {
+                $headers[] = 'X-Auth-Token: '.$this->getClientApiToken();
+            }
+        }
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        $curl_post_response = curl_exec($curl);
+        $curl_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+        $this->logPatch('Created ' . $resource);
+        $this->logPatch(print_r(array("data" => $curl_post_response, "status" => $curl_status), true));
+        return array("data" => json_decode($curl_post_response), "status" => $curl_status);
+    }
+
     private  function get($api, $resource, array $data = array(), $secure = true, $token = null)
     {
         $this->logGet('Getting '.$resource);
         $this->logGet(print_r($data, true));
+        $this->logGet(json_encode($data));
         $url = Mage::getStoreConfig("lightspeed_settings/lightspeed_account/lightspeed_server");
         if(!substr($url, -strlen('/'))==='/'){
             $url .= '/';

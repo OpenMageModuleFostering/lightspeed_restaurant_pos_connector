@@ -74,7 +74,12 @@ class Lightspeed_Syncproducts_Block_Syncproducts extends Mage_Adminhtml_Block_Te
 
     public function getPrice($product, $vatIncl){
         $priceField = Mage::helper('lightspeed_syncproducts/syncProcess')->getPriceField();
-        if($vatIncl){
+        if ($priceField == "normal") {
+            $priceField = "price";
+        } else {
+            $priceField .= "Price";
+        }
+        if ($vatIncl) {
             return $product->{$priceField};
         } else {
             $priceField .= "WithoutVat";

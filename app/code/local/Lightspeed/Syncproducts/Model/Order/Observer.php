@@ -1,8 +1,7 @@
 <?php
 class Lightspeed_Syncproducts_Model_Order_Observer {
 
-    public function __construct()
-    {
+    public function __construct() {
     }
 
     private function log($message){
@@ -11,33 +10,99 @@ class Lightspeed_Syncproducts_Model_Order_Observer {
 
     public function syncOrder($magentoOrder){
         $this->log('Start order syncing');
+        $paymentMethod = $magentoOrder->getPayment()->getMethod();
         $order = array();
         $order["id"] = 0;
         $order["description"] = "auto-generated order by magento-plugin for invoice ";
 
+        if ($magentoOrder->getCustomerComment()) {
+            $order["note"] = $magentoOrder->getCustomerComment();
+        }
+
+        $establishmentId = $this->getEstablishmentId($magentoOrder);
+        if ($establishmentId !== null) {
+            $order['companyId'] = $establishmentId;
+        }
+
+        $customer= mage::getModel('customer/customer')->load($magentoOrder->getCustomerId());
+        $order["customerId"] = $this->getCustomerId($customer, $establishmentId, $magentoOrder);
+
+        $order["deliveryDate"] = $this->getDeliveryTimestamp($magentoOrder);
+        $order["type"] = $this->getShippingType($magentoOrder->getShippingMethod(true)->getCarrierCode());
+
+        $deliveryCostProduct = array();
+        $deliveryProduct = explode('_', Mage::getStoreConfig('lightspeed_settings/lightspeed_sync/lightspeed_delivery_costs'));
+        if (count($deliveryProduct) > 1) {
+            if (false) {
+                $deliveryCostProduct["productPlu"] = $deliveryProduct[1];
+            } else {
+                $deliveryCostProduct["productId"] = $deliveryProduct[0];
+            }
+            $deliveryCostProduct["amount"] = 1;
+            $deliveryCostProduct["unitPrice"] = (float)$magentoOrder->getShippingAmount();
+            $deliveryCostProduct["unitPriceWithoutVat"] = (float)$magentoOrder->getShippingAmount();
+            $deliveryCostProduct["totalPrice"] = (float)$magentoOrder->getShippingAmount();
+            $deliveryCostProduct["totalPriceWithoutVat"] = (float)$magentoOrder->getShippingAmount();
+            $orderItems[] = $deliveryCostProduct;
+        }
+
+        $orderWithTaxes = $this->createOrderWithTaxes($magentoOrder);
+        $orderItems = $orderWithTaxes[0];
+        $orderTaxInfo = $this->getOrderTaxInfo($magentoOrder, $orderWithTaxes[1]);
+        $order["orderItems"] = $orderItems;
+
+        if(count($orderTaxInfo) > 0){
+            $order["orderTaxInfo"] = $orderTaxInfo;
+        }
+
+        if ($paymentMethod === "checkmo" || $paymentMethod === "free") {
+            $order["status"] = "ACCEPTED";
+        } else {
+            $order["status"] = "WAITING_FOR_PAYMENT";
+        }
+
+        $this->log('Going to create an order' . (($establishmentId !== null) ? ' for establishment: ' . $establishmentId : ''));
+        $posiosId = Mage::helper('lightspeed_syncproducts/api')->createOrder($order, $establishmentId);
+        $magentoOrder->setData('posiosId', $posiosId);
+        $magentoOrder->save();
+
+        $this->log('Order synced');
+    }
+
+    protected function getEstablishmentId($magentoOrder) {
         $useEstablishment = false;
         $establishmentField = Mage::getStoreConfig('lightspeed_settings/lightspeed_establishments/lightspeed_establishment_field');
-        if(!isset($establishmentField) || $establishmentField == '0'){
+        if(!isset($establishmentField) || $establishmentField == '0' || empty($establishmentField)) {
             $establishmentId = null;
         } else {
             $establishmentId = $magentoOrder->getData($establishmentField);
             if(isset($establishmentId)){
                 $establishmentId = (int)$establishmentId;
-                $order['companyId'] = (int)$establishmentId;
                 $useEstablishment = true;
+            } else {
+                $establishmentId = null;
             }
         }
 
-        $this->log('Using establishments? ' . ($useEstablishment ? 'Yes' : 'No'));
+        $this->log($useEstablishment ? 'Using establishments' : 'Not using establishments');
+        return $establishmentId;
+    }
 
-        $customer= mage::getModel('customer/customer')->load($magentoOrder->getCustomerId());
-        $order["customerId"] = $this->getCustomerId($customer, $establishmentId, $magentoOrder);
-        $this->log('Lightspeed customer id: ' .$order['customerId']);
+    protected function getCustomerId($customer, $establishmentId, $order){
+        $this->log('Start syncing user...');
+        if(!isset($establishmentId)){
+            return (int)(Mage::helper('lightspeed_syncproducts/import')->importCustomer($customer, $order->getBillingAddress(), $order->getShippingAddress(), null));
+        } else {
+            $this->log('Start syncing user... using establishment');
+            $this->log('Got establishment id: ' .$establishmentId);
+            return (int)(Mage::helper('lightspeed_syncproducts/import')->importCustomer($customer, $order->getBillingAddress(), $order->getShippingAddress(), $establishmentId));
+        }
 
-        $order["deliveryDate"] = $this->getDeliveryTimestamp($magentoOrder);
-        $order["type"] = $this->getShippingType($magentoOrder->getShippingMethod(true)->getCarrierCode());
+    }
+
+    protected function createOrderWithTaxes($magentoOrder) {
         $orderItems = array();
-        $items = Mage::getModel("sales/order_item")->getCollection()->addFieldToFilter("order_id",$magentoOrder->getEntityId());
+        $items = Mage::getModel("sales/order_item")->getCollection()->addFieldToFilter("order_id", $magentoOrder->getEntityId());
         $taxes = array();
         $useModifiers = (Mage::getStoreConfig('lightspeed_settings/lightspeed_sync/lightspeed_import_modifiers') == '1');
         foreach($items as $orderItem){
@@ -72,36 +137,12 @@ class Lightspeed_Syncproducts_Model_Order_Observer {
                 }
                 $item['modifiers'] = $modifiers;
             }
-
-
             $orderItems[] = $item;
         }
+        return array($orderItems, $taxes);
+    }
 
-        $deliveryCostProduct = array();
-        $deliveryProduct = explode('_',Mage::getStoreConfig('lightspeed_settings/lightspeed_sync/lightspeed_delivery_costs'));
-        if(count($deliveryProduct) > 1){
-            if(false){
-                $deliveryCostProduct["productPlu"] = $deliveryProduct[1];
-            } else {
-                $deliveryCostProduct["productId"] = $deliveryProduct[0];
-            }
-            $deliveryCostProduct["amount"] = 1;
-            $deliveryCostProduct["unitPrice"] = (float)$magentoOrder->getShippingAmount();
-            $deliveryCostProduct["unitPriceWithoutVat"] = (float)$magentoOrder->getShippingAmount();
-            $deliveryCostProduct["totalPrice"] = (float)$magentoOrder->getShippingAmount();
-            $deliveryCostProduct["totalPriceWithoutVat"] = (float)$magentoOrder->getShippingAmount();
-            $orderItems[] = $deliveryCostProduct;
-        }
-
-
-        $order["orderItems"] = $orderItems;
-        $paymentMethod = $magentoOrder->getPayment()->getMethod();
-        if($paymentMethod != "checkmo" && $paymentMethod != "free"){
-            $paymentId = Mage::getStoreConfig('lightspeed_settings/lightspeed_payment/lightspeed_payment_'.$paymentMethod);
-            $payment = Mage::helper('lightspeed_syncproducts/api')->getPaymentType($paymentId);
-            $order["orderPayment"] = array("amount" => (float)$magentoOrder->getGrandTotal(), "paymentTypeId"=>(int)$payment->id, "paymentTypeTypeId"=>(int)$payment->typeId);
-        }
-
+    protected function getOrderTaxInfo($magentoOrder, $taxes) {
         $taxInfo = $magentoOrder->getFullTaxInfo();
         $orderTaxInfo = array();
         foreach($taxInfo as $taxItem){
@@ -111,59 +152,48 @@ class Lightspeed_Syncproducts_Model_Order_Observer {
             $orderTaxInfo[] = array("tax" => (float)$taxItem["amount"], "taxRate" => $taxItem["percent"], "totalWithoutTax" => $total, "totalWithTax" => $totalInclTax);
         }
 
-        if(count($orderTaxInfo) > 0){
-            $order["orderTaxInfo"] = $orderTaxInfo;
-        }
-
-        $this->log('Going to create an order for establishment: ' .$establishmentId);
-        $posiosId = Mage::helper('lightspeed_syncproducts/api')->createOrder($order, $establishmentId);
-        $magentoOrder->setData('posiosId', $posiosId);
-        $magentoOrder->save();
-
-        $this->log('Order synced');
-    }
-
-    protected function getCustomerId($customer, $establishmentId, $order){
-        $this->log('Start syncing user...');
-        if(!isset($establishmentId)){
-            $lightspeedId = $customer->getData("posiosId");
-            if(isset($lightspeedId)){
-                return (int)$lightspeedId;
-            } else {
-                return (int)(Mage::helper('lightspeed_syncproducts/import')->importCustomer($customer, $order->getBillingAddress(), $order->getShippingAddress(), null));
-            }
-        } else {
-            $this->log('Start syncing user... using establishment');
-            $this->log('Got establishment id: ' .$establishmentId);
-            return (int)(Mage::helper('lightspeed_syncproducts/import')->importCustomer($customer, $order->getBillingAddress(), $order->getShippingAddress(), $establishmentId));
-        }
-
+        return $orderTaxInfo;
     }
 
 
-    public function syncOrderAfterPayment($event){
+    public function syncOrderAfterPayment($event) {
         $invoice = $event->getInvoice();
         $magentoOrder = $invoice->getOrder();
-
         $paymentMethod = $magentoOrder->getPayment()->getMethod();
-        $this->log("Payment placed with: ".$paymentMethod);
+
+        $this->log("Payment placed with: " . $paymentMethod);
         if($paymentMethod != "checkmo"){
-            $this->syncOrder($magentoOrder);
+            $this->updatePayment($magentoOrder, $paymentMethod, "ACCEPTED");
         }
     }
 
-    public function syncOrderAfterPlacement ($event){
+    public function syncOrderAfterPlacement($event) {
         $magentoOrder = $event->getOrder();
 
         $paymentMethod = $magentoOrder->getPayment()->getMethod();
         $this->log("Order placed with: ".$paymentMethod);
-
-        if($paymentMethod == "free" || $paymentMethod == "checkmo"){
-            $this->syncOrder($magentoOrder);
-        }
+        $this->syncOrder($magentoOrder);
     }
 
-    private function getDeliveryTimestamp($order){
+    protected function updatePayment($magentoOrder, $paymentMethod, $status) {
+        $this->log('Going to update order to status: ' . $status);
+
+        $customer = Mage::getModel('customer/customer')->load($magentoOrder->getCustomerId());
+        $customerId = $customer->getData('posiosId');
+        $posiosId = $magentoOrder->getData("posiosId");
+
+        $paymentId = Mage::getStoreConfig('lightspeed_settings/lightspeed_payment/lightspeed_payment_'.$paymentMethod);
+        $payment = Mage::helper('lightspeed_syncproducts/api')->getPaymentType($paymentId);
+
+        $orderPayment = array(
+            "amount" => (float)$magentoOrder->getGrandTotal(),
+            "paymentTypeId"=>(int)$payment->id,
+            "paymentTypeTypeId"=>(int)$payment->typeId
+        );
+        Mage::helper('lightspeed_syncproducts/api')->updateOrder($customerId, $posiosId, $orderPayment, $status);
+    }
+
+    private function getDeliveryTimestamp($order) {
         try{
             $mod = Mage::getModel("invoiceogone/deliverytime");
             if($mod){

@@ -20,8 +20,8 @@ class Lightspeed_Syncproducts_Model_Product_Source {
             $products = Mage::helper('lightspeed_syncproducts/api')->getAllProducts();
             $ret = array(array("value"=>-1, "label" => "-- Please select a product --"));
             if(isset($products) && count($products) > 0){
-                foreach($products as $products){
-                    $ret[] = array("value" => $products->id.'_'.$products->sku, "label" => $products->name);
+                foreach($products as $product){
+                    $ret[] = array("value" => $product->id.'_'.$product->sku, "label" => $product->name);
                 }
                 $this->setSyncSession($this->getSyncSession()->setProducts($ret));
                 $this->setSyncSession($this->getSyncSession()->setLastUpdate(time()));

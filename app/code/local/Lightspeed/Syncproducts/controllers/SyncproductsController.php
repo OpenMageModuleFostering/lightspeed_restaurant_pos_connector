@@ -3,7 +3,7 @@ class Lightspeed_Syncproducts_SyncproductsController extends Mage_Adminhtml_Cont
 {
 
     private function log($message){
-        Mage::log($message, null, "lightspeed.log");
+        Mage::log($message, null, "lightspeed.log", true);
     }
 
 
@@ -29,7 +29,7 @@ class Lightspeed_Syncproducts_SyncproductsController extends Mage_Adminhtml_Cont
         $productGroups = array();
         foreach($this->getRequest()->getPost() as $name => $id){
             if($name != "form_key"){
-                $productGroups[] = array("name" => $name, "id" => $id);
+                $productGroups[$id] = array("name" => $name, "id" => $id);
             }
         }
         Mage::helper('lightspeed_syncproducts/syncProcess')->setProductGroups($productGroups);

@@ -1,6 +1,10 @@
 <?php
 class Lightspeed_Syncproducts_Helper_SyncProcess extends Mage_Core_Helper_Abstract{
 
+    private function log($message) {
+        Mage::log($message, null, "lightspeed.log", true);
+    }
+
     private function getSyncSession(){
         $session = Mage::getSingleton('adminhtml/session')->getLightspeedSync();
         if($session == null){
@@ -21,9 +25,13 @@ class Lightspeed_Syncproducts_Helper_SyncProcess extends Mage_Core_Helper_Abstra
         $this->setSyncSession($this->getSyncSession()->setPriceField($priceField));
     }
 
-    public function getProductGroups()
-    {
+    public function getProductGroups() {
         return $this->getSyncSession()->getProductGroups();
+    }
+
+    public function getProductGroup($id) {
+        $groups = $this->getSyncSession()->getProductGroups();
+        return $groups[$id];   
     }
 
     public function setProductGroups($productGroups)
@@ -31,6 +39,11 @@ class Lightspeed_Syncproducts_Helper_SyncProcess extends Mage_Core_Helper_Abstra
         $this->setSyncSession($this->getSyncSession()->setProductGroups($productGroups));
     }
 
+    /**
+     * An associative array of category ids 
+     * Key: Category Id
+     * Value: Array of product ids
+     */
     public function getProductIds()
     {
         return $this->getSyncSession()->getProductIds();
@@ -58,13 +71,12 @@ class Lightspeed_Syncproducts_Helper_SyncProcess extends Mage_Core_Helper_Abstra
 
     public function addProducts($products)
     {
-        foreach($products as $product){
+    	foreach($products as $product){
             $this->addProduct($product);
         }
     }
 
-    public function getProduct($id)
-    {
+    public function getProduct($id) {
         $products = $this->getSyncSession()->getProducts();
         return $products[$id];
     }

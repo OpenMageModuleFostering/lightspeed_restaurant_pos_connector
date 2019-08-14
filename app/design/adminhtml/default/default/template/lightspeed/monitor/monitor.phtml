@@ -71,6 +71,8 @@
                     <tr class="headings">
                         <th>Order id</th>
                         <th>Lightspeed Receipt Id</th>
+                        <th>Creation Date</th>
+                        <th>Delivery Date</th>
                         <th>Customer</th>
                         <th>Total Price</th>
                         <th>Type</th>
@@ -89,6 +91,12 @@
                                 <?php endif; ?>
                             </td>
                             <td><?php echo $orders[$index]->receiptId; ?></td>
+                            <?php
+                            $creationDate = new DateTime($orders[$index]->creationDate);
+                            $deliveryDate = new DateTime($orders[$index]->deliveryDate);
+                            ?>
+                            <td><?php echo $creationDate->format('d/m/y H:m:s'); ?></td>
+                            <td><?php echo $deliveryDate->format('d/m/y H:m:s'); ?></td>
                             <td><?php echo (isset($orders[$index]->customerName) ? $orders[$index]->customerName : '-'); ?></td>
                             <td><?php echo $orders[$index]->totalPrice; ?></td>
                             <td><?php echo $orders[$index]->type; ?></td>
