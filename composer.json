@@ -6,8 +6,8 @@
     "description": "The Lightspeed Restaurant POS connector will allow magento to send and sync products / orders to the point of sale.",
     "authors": [
     {
-        "name": "Joris De Smedt",
-        "email": "Joris.DeSmedt@lightspeedhq.com"
+        "name": "Jonas Ostir",
+        "email": "Jonas.Ostir@lightspeedhq.com"
     }
 ],
     "suggest": {

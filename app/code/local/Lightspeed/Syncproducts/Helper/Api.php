@@ -208,10 +208,10 @@ class Lightspeed_Syncproducts_Helper_Api  extends Mage_Core_Helper_Abstract{
         }
     }
 
-    public function updateOrder($customerId, $posiosId, $orderPayment, $status) {
+    public function updateOrder($customerId, $posiosId, $status) {
         $this->logPatch('Updating order with posiosId: ' . $posiosId . ' to payment status: ' . $status);
 
-        $response = $this->patch(self::ONLINE_ORDERING, "customer/" . $customerId . "/order/" . $posiosId, array("orderPayment" => $orderPayment, "status" => $status), true, null);
+        $response = $this->patch(self::ONLINE_ORDERING, "customer/" . $customerId . "/order/" . $posiosId, array("status" => $status), true, null);
         $this->logPut($response);
 
         if($response["status"] == 200){

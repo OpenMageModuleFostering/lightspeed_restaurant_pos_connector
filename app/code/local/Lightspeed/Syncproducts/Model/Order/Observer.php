@@ -53,6 +53,9 @@ class Lightspeed_Syncproducts_Model_Order_Observer {
         }
 
         $orderWithTaxes = $this->createOrderWithTaxes($magentoOrder);
+
+        $order["orderPayment"] = $this->getOrderPayment($paymentMethod, $magentoOrder);
+
         $orderItems = $orderWithTaxes[0];
         $orderTaxInfo = $this->getOrderTaxInfo($magentoOrder, $orderWithTaxes[1]);
         $order["orderItems"] = $orderItems;
@@ -74,6 +77,16 @@ class Lightspeed_Syncproducts_Model_Order_Observer {
         $magentoOrder->save();
 
         $this->log('Order synced');
+    }
+
+    protected function getOrderPayment($paymentMethod, $magentoOrder) {
+        $paymentId = Mage::getStoreConfig('lightspeed_settings/lightspeed_payment/lightspeed_payment_'.$paymentMethod);
+        $payment = Mage::helper('lightspeed_syncproducts/api')->getPaymentType($paymentId);
+        return array(
+            "amount" => (float)$magentoOrder->getGrandTotal(),
+            "paymentTypeId"=>(int)$payment->id,
+            "paymentTypeTypeId"=>(int)$payment->typeId
+        );
     }
 
     protected function getEstablishmentId($magentoOrder) {
@@ -189,24 +202,15 @@ class Lightspeed_Syncproducts_Model_Order_Observer {
         $customerId = $customer->getData('posiosId');
         $posiosId = $magentoOrder->getData("posiosId");
 
-        $paymentId = Mage::getStoreConfig('lightspeed_settings/lightspeed_payment/lightspeed_payment_'.$paymentMethod);
-        $payment = Mage::helper('lightspeed_syncproducts/api')->getPaymentType($paymentId);
-
-        $orderPayment = array(
-            "amount" => (float)$magentoOrder->getGrandTotal(),
-            "paymentTypeId"=>(int)$payment->id,
-            "paymentTypeTypeId"=>(int)$payment->typeId
-        );
-        Mage::helper('lightspeed_syncproducts/api')->updateOrder($customerId, $posiosId, $orderPayment, $status);
+        Mage::helper('lightspeed_syncproducts/api')->updateOrder($customerId, $posiosId, $status);
     }
 
     private function getDeliveryTimestamp($order) {
 
         try {
-            $deliveryTimeHelper = Mage::helper('deliverytime');
             $deliveryTimeModel = Mage::getModel("deliverytime/deliverytime");
 
-            if ($deliveryTimeModel && $deliveryTimeHelper->isEnabled()) {
+            if ($deliveryTimeModel) {
                 $deliveryDateTime = Mage::getSingleton('checkout/session')->getData('delivery_time_data');
                 date_default_timezone_set(Mage::getStoreConfig('general/locale/timezone'));
                 return date(DATE_ATOM, strtotime($deliveryDateTime["delivery_date"] . " " . $deliveryDateTime["time_start"]));
