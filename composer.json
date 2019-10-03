@@ -1,16 +1,19 @@
 {
-    "name": "OpenMageModuleFostering/Lightspeed_Restaurant_POS_connector",
+    "name": "OpenMageModuleFostering\/Lightspeed_Restaurant_POS_connector",
     "type": "magento-module",
     "license": "Commercial-Agreement",
     "homepage": "",
-    "description": "The Lightspeed Restaurant POS connector will allow magento to send and sync products / orders to the point of sale.",
+    "description": "The Lightspeed Restaurant POS connector will allow magento to send and sync products \/ orders to the point of sale.",
     "authors": [
-    {
-        "name": "Jonas Ostir",
-        "email": "Jonas.Ostir@lightspeedhq.com"
-    }
-],
+        {
+            "name": "Jonas Ostir",
+            "email": "Jonas.Ostir@lightspeedhq.com"
+        }
+    ],
     "suggest": {
-        "magento-hackathon/magento-composer-installer": "*"
-    }
+        "magento-hackathon\/magento-composer-installer": "*"
+    },
+    "keywords": [
+        "openmage-module"
+    ]
 }
