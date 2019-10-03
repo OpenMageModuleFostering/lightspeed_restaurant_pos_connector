@@ -1,5 +1,5 @@
 {
-    "name": "OpenMageModuleFostering\/Lightspeed_Restaurant_POS_connector",
+    "name": "openmage-module-fostering\/lightspeed_restaurant_pos_connector",
     "type": "magento-module",
     "license": "Commercial-Agreement",
     "homepage": "",
